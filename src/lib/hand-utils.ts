@@ -1,69 +1,64 @@
 import { VRM, VRMHumanBoneName } from "@pixiv/three-vrm";
 import { Vector3, Quaternion, Matrix4 } from "three";
 import { Landmark } from "@mediapipe/tasks-vision";
-import { applyBoneRotation } from "./ik-utils"; // Assuming you have this helper
+import { applyBoneRotation } from "./ik-utils";
+import { getLandmarkVector } from "./ik-utils";
 
-// --- Constants for Finger Rigging ---
-
-/**
- * Maps MediaPipe landmarks to the VRM bones for the LEFT hand.
- */
+// --- MAPPING CONSTANTS ---
+// Using separate, explicit maps for each hand.
 const LEFT_HAND_FINGER_MAP = {
   Thumb: [
-    { bone: VRMHumanBoneName.LeftThumbMetacarpal, lm: [0, 1, 2] },
-    { bone: VRMHumanBoneName.LeftThumbProximal, lm: [1, 2, 3] },
-    { bone: VRMHumanBoneName.LeftThumbDistal, lm: [2, 3, 4] },
+    { bone: VRMHumanBoneName.LeftThumbMetacarpal, lm: [1, 2] },
+    { bone: VRMHumanBoneName.LeftThumbProximal, lm: [2, 3] },
+    { bone: VRMHumanBoneName.LeftThumbDistal, lm: [3, 4] },
   ],
   Index: [
-    { bone: VRMHumanBoneName.LeftIndexProximal, lm: [0, 5, 6] },
-    { bone: VRMHumanBoneName.LeftIndexIntermediate, lm: [5, 6, 7] },
-    { bone: VRMHumanBoneName.LeftIndexDistal, lm: [6, 7, 8] },
+    { bone: VRMHumanBoneName.LeftIndexProximal, lm: [5, 6] },
+    { bone: VRMHumanBoneName.LeftIndexIntermediate, lm: [6, 7] },
+    { bone: VRMHumanBoneName.LeftIndexDistal, lm: [7, 8] },
   ],
   Middle: [
-    { bone: VRMHumanBoneName.LeftMiddleProximal, lm: [0, 9, 10] },
-    { bone: VRMHumanBoneName.LeftMiddleIntermediate, lm: [9, 10, 11] },
-    { bone: VRMHumanBoneName.LeftMiddleDistal, lm: [10, 11, 12] },
+    { bone: VRMHumanBoneName.LeftMiddleProximal, lm: [9, 10] },
+    { bone: VRMHumanBoneName.LeftMiddleIntermediate, lm: [10, 11] },
+    { bone: VRMHumanBoneName.LeftMiddleDistal, lm: [11, 12] },
   ],
   Ring: [
-    { bone: VRMHumanBoneName.LeftRingProximal, lm: [0, 13, 14] },
-    { bone: VRMHumanBoneName.LeftRingIntermediate, lm: [13, 14, 15] },
-    { bone: VRMHumanBoneName.LeftRingDistal, lm: [14, 15, 16] },
+    { bone: VRMHumanBoneName.LeftRingProximal, lm: [13, 14] },
+    { bone: VRMHumanBoneName.LeftRingIntermediate, lm: [14, 15] },
+    { bone: VRMHumanBoneName.LeftRingDistal, lm: [15, 16] },
   ],
   Little: [
-    { bone: VRMHumanBoneName.LeftLittleProximal, lm: [0, 17, 18] },
-    { bone: VRMHumanBoneName.LeftLittleIntermediate, lm: [17, 18, 19] },
-    { bone: VRMHumanBoneName.LeftLittleDistal, lm: [18, 19, 20] },
+    { bone: VRMHumanBoneName.LeftLittleProximal, lm: [17, 18] },
+    { bone: VRMHumanBoneName.LeftLittleIntermediate, lm: [18, 19] },
+    { bone: VRMHumanBoneName.LeftLittleDistal, lm: [19, 20] },
   ],
 };
 
-/**
- * Maps MediaPipe landmarks to the VRM bones for the RIGHT hand.
- */
 const RIGHT_HAND_FINGER_MAP = {
   Thumb: [
-    { bone: VRMHumanBoneName.RightThumbMetacarpal, lm: [0, 1, 2] },
-    { bone: VRMHumanBoneName.RightThumbProximal, lm: [1, 2, 3] },
-    { bone: VRMHumanBoneName.RightThumbDistal, lm: [2, 3, 4] },
+    { bone: VRMHumanBoneName.RightThumbMetacarpal, lm: [1, 2] },
+    { bone: VRMHumanBoneName.RightThumbProximal, lm: [2, 3] },
+    { bone: VRMHumanBoneName.RightThumbDistal, lm: [3, 4] },
   ],
   Index: [
-    { bone: VRMHumanBoneName.RightIndexProximal, lm: [0, 5, 6] },
-    { bone: VRMHumanBoneName.RightIndexIntermediate, lm: [5, 6, 7] },
-    { bone: VRMHumanBoneName.RightIndexDistal, lm: [6, 7, 8] },
+    { bone: VRMHumanBoneName.RightIndexProximal, lm: [5, 6] },
+    { bone: VRMHumanBoneName.RightIndexIntermediate, lm: [6, 7] },
+    { bone: VRMHumanBoneName.RightIndexDistal, lm: [7, 8] },
   ],
   Middle: [
-    { bone: VRMHumanBoneName.RightMiddleProximal, lm: [0, 9, 10] },
-    { bone: VRMHumanBoneName.RightMiddleIntermediate, lm: [9, 10, 11] },
-    { bone: VRMHumanBoneName.RightMiddleDistal, lm: [10, 11, 12] },
+    { bone: VRMHumanBoneName.RightMiddleProximal, lm: [9, 10] },
+    { bone: VRMHumanBoneName.RightMiddleIntermediate, lm: [10, 11] },
+    { bone: VRMHumanBoneName.RightMiddleDistal, lm: [11, 12] },
   ],
   Ring: [
-    { bone: VRMHumanBoneName.RightRingProximal, lm: [0, 13, 14] },
-    { bone: VRMHumanBoneName.RightRingIntermediate, lm: [13, 14, 15] },
-    { bone: VRMHumanBoneName.RightRingDistal, lm: [14, 15, 16] },
+    { bone: VRMHumanBoneName.RightRingProximal, lm: [13, 14] },
+    { bone: VRMHumanBoneName.RightRingIntermediate, lm: [14, 15] },
+    { bone: VRMHumanBoneName.RightRingDistal, lm: [15, 16] },
   ],
   Little: [
-    { bone: VRMHumanBoneName.RightLittleProximal, lm: [0, 17, 18] },
-    { bone: VRMHumanBoneName.RightLittleIntermediate, lm: [17, 18, 19] },
-    { bone: VRMHumanBoneName.RightLittleDistal, lm: [18, 19, 20] },
+    { bone: VRMHumanBoneName.RightLittleProximal, lm: [17, 18] },
+    { bone: VRMHumanBoneName.RightLittleIntermediate, lm: [18, 19] },
+    { bone: VRMHumanBoneName.RightLittleDistal, lm: [19, 20] },
   ],
 };
 
@@ -73,29 +68,23 @@ const HAND_FINGER_MAPS = {
 };
 
 /**
- * Applies hand tracking data to a VRM model's hand and finger bones.
- * @param vrm The target VRM model.
- * @param leftHandLandmarks An array of 3D landmarks for the left hand.
- * @param rightHandLandmarks An array of 3D landmarks for the right hand.
+ * Main function to apply hand tracking data to the VRM model.
  */
 export const rigHands = (
   vrm: VRM,
   leftHandLandmarks: Landmark[],
   rightHandLandmarks: Landmark[]
 ) => {
-  if (leftHandLandmarks && leftHandLandmarks.length > 0) {
+  if (leftHandLandmarks?.length > 0) {
     rigSingleHand(vrm, leftHandLandmarks, "Left");
   }
-  if (rightHandLandmarks && rightHandLandmarks.length > 0) {
+  if (rightHandLandmarks?.length > 0) {
     rigSingleHand(vrm, rightHandLandmarks, "Right");
   }
 };
 
 /**
- * Rigs a single hand's orientation and fingers.
- * @param vrm The VRM model.
- * @param handLandmarks The list of landmarks for the hand.
- * @param side Which hand to rig ("Left" or "Right").
+ * Rigs a single hand's orientation and then delegates to the finger rigger.
  */
 const rigSingleHand = (
   vrm: VRM,
@@ -108,19 +97,12 @@ const rigSingleHand = (
   const handBone = humanoid.getNormalizedBoneNode(
     VRMHumanBoneName[`${side}Hand`]
   );
+
   if (!handBone || !handBone.parent) return;
 
-  // --- Rig Hand Orientation ---
-  const getLandmark = (index: number): Vector3 => {
-    const landmark = handLandmarks[index];
-    // Flipping the z-axis is a common requirement when mapping from
-    // screen-space 2.5D landmarks to a 3D world.
-    return new Vector3(landmark.x, landmark.y, -landmark.z);
-  };
-
-  const wrist = getLandmark(0);
-  const middleMcp = getLandmark(9);
-  const indexMcp = getLandmark(5);
+  const wrist = getLandmarkVector(handLandmarks[0]);
+  const middleMcp = getLandmarkVector(handLandmarks[9]);
+  const indexMcp = getLandmarkVector(handLandmarks[5]);
 
   const forward = new Vector3().subVectors(middleMcp, wrist).normalize();
   const up =
@@ -129,77 +111,85 @@ const rigSingleHand = (
       : new Vector3().subVectors(wrist, indexMcp).cross(forward).normalize();
 
   const right = new Vector3().crossVectors(up, forward).normalize();
-
   const rotationMatrix = new Matrix4().makeBasis(right, up, forward);
   const worldQuat = new Quaternion().setFromRotationMatrix(rotationMatrix);
 
-  // Correction for T-pose alignment. May need adjustment.
   const correctionQuat = new Quaternion().setFromAxisAngle(
     new Vector3(0, 1, 0),
-    side === "Left" ? -Math.PI / 2 : Math.PI / 2
+    side === "Left" ? Math.PI / 2 : -Math.PI / 2
   );
-  worldQuat.multiply(correctionQuat);
 
+  worldQuat.multiply(correctionQuat);
   const parentWorldQuat = handBone.parent.getWorldQuaternion(new Quaternion());
   applyBoneRotation(handBone, worldQuat, parentWorldQuat, 0.3);
 
-  // --- Rig Fingers ---
-  rigFingers(humanoid, handLandmarks, side);
+  rigFingers(vrm, handLandmarks, side);
 };
 
 /**
- * Rigs the fingers of a single hand by calculating the curl angle for each joint.
- * @param humanoid The VRM humanoid object.
- * @param handLandmarks The list of landmarks for the hand.
- * @param side Which hand to rig.
+ * Rigs each finger bone by directly pointing it at the next landmark.
  */
 const rigFingers = (
-  humanoid: VRM["humanoid"],
+  vrm: VRM,
   handLandmarks: Landmark[],
   side: "Left" | "Right"
 ) => {
-  // --- REFACTORED SECTION ---
-  // Select the correct finger map based on the hand side.
   const fingerMap = HAND_FINGER_MAPS[side];
+  const humanoid = vrm.humanoid;
+  if (!humanoid) return;
 
-  const getLandmark = (index: number): Vector3 => {
-    const landmark = handLandmarks[index];
-    return new Vector3(landmark.x, landmark.y, landmark.z);
-  };
+  // --- NEW: Define the Thumb Rotation Offset ---
+  // This is our calibration tool. We'll create a quaternion that represents a
+  // small, constant rotation to apply only to the thumb bones.
+  const thumbOffset = new Quaternion();
 
+  // We'll start by rotating around the Y-axis (Yaw) to fix the thumb
+  // shooting out to the side vs. curling in.
+  // This is the value you will experiment with!
+  const yawAngle = side === "Left" ? Math.PI / 4 : -Math.PI / 4; // Start with 30 degrees
+
+  thumbOffset.setFromAxisAngle(new Vector3(0, 1, 0), yawAngle);
+  // --- END NEW ---
+
+  // --- MODIFIED: Changed loop to get finger name ---
   for (const [fingerName, joints] of Object.entries(fingerMap)) {
     for (const joint of joints) {
-      // The bone name is now directly taken from the map.
       const fingerBone = humanoid.getNormalizedBoneNode(joint.bone);
-      if (!fingerBone) continue;
+      if (!fingerBone || !fingerBone.parent) continue;
 
-      const lmPrev = getLandmark(joint.lm[0]);
-      const lmCurr = getLandmark(joint.lm[1]);
-      const lmNext = getLandmark(joint.lm[2]);
+      const parentWorldQuat = fingerBone.parent.getWorldQuaternion(
+        new Quaternion()
+      );
 
-      const vec1 = new Vector3().subVectors(lmCurr, lmPrev).normalize();
-      const vec2 = new Vector3().subVectors(lmNext, lmCurr).normalize();
+      const lmStart = getLandmarkVector(handLandmarks[joint.lm[0]]);
+      const lmEnd = getLandmarkVector(handLandmarks[joint.lm[1]]);
 
-      let curlAngle = vec1.angleTo(vec2);
+      const targetDirection = new Vector3()
+        .subVectors(lmEnd, lmStart)
+        .normalize();
 
-      // Determine the curl axis based on the hand.
-      // For most fingers, this is rotation around the local Z-axis.
-      let curlAxis = new Vector3(0, 0, side === "Left" ? 1 : -1);
+      const defaultDirection = new Vector3(side === "Left" ? -1 : 1, 0, 0);
 
+      const localTargetDirection = targetDirection
+        .clone()
+        .applyQuaternion(parentWorldQuat.clone().invert());
+
+      const localQuat = new Quaternion().setFromUnitVectors(
+        defaultDirection,
+        localTargetDirection
+      );
+
+      // --- MODIFIED: Apply offset only to the thumb ---
       if (fingerName === "Thumb") {
-        // The thumb swings inwards on the Y-axis.
-        curlAxis = new Vector3(0, side === "Left" ? 1 : -1, 0);
-
-        // Amplify thumb curl for a more natural look, except for the first joint.
-        if (!joint.bone.includes("Metacarpal")) {
-          curlAngle *= 1.5;
-        }
+        // For the thumb, we combine the calculated rotation with our offset.
+        // The multiplication order (offset * local) means we apply the tracking
+        // rotation first, and then apply our manual tweak on top of that.
+        const finalThumbQuat = thumbOffset.clone().multiply(localQuat);
+        fingerBone.quaternion.slerp(finalThumbQuat, 0.6);
+      } else {
+        // For all other fingers, we use the original logic.
+        fingerBone.quaternion.slerp(localQuat, 0.6);
       }
-
-      const curlQuat = new Quaternion().setFromAxisAngle(curlAxis, curlAngle);
-
-      // Apply the rotation with smoothing (slerp)
-      fingerBone.quaternion.slerp(curlQuat, 0.5);
     }
   }
 };

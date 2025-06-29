@@ -7,7 +7,6 @@ import { Landmark } from "@mediapipe/tasks-vision";
  * @returns A Vector3 in the correct coordinate space.
  */
 export const getLandmarkVector = (landmark: Landmark): Vector3 => {
-  // The coordinate system is flipped for VRM.
   return new Vector3(landmark.x, landmark.y, landmark.z);
 };
 

@@ -183,10 +183,10 @@ self.onmessage = async (event) => {
               dataForRigging.poseLandmarks?.map(transformLandmarks),
             poseWorldLandmarks:
               dataForRigging.poseWorldLandmarks?.map(transformLandmarks),
-            leftHandLandmarks:
-              dataForRigging.leftHandLandmarks?.map(transformLandmarks),
-            rightHandLandmarks:
-              dataForRigging.rightHandLandmarks?.map(transformLandmarks),
+            leftHandWorldLandmarks:
+              dataForRigging.leftHandWorldLandmarks?.map(transformLandmarks),
+            rightHandWorldLandmarks:
+              dataForRigging.rightHandWorldLandmarks?.map(transformLandmarks),
           };
 
           // Post both sets of data back. `dataForDebug` is either raw or smoothed. `riggingResults` is always transformed.

@@ -8,6 +8,7 @@ import { OrbitControls, Stats } from "@react-three/drei";
 import { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { initialCamera, useEditorStore } from "@/store/editor-store";
 import { MainOverlay } from "./main-overlay";
+import { SkeletonVisualizer } from "./skeleton-visualizer";
 
 export function VTubeStudio() {
   const {
@@ -98,6 +99,7 @@ export function VTubeStudio() {
           )}
 
           <Avatar modelUrl={modelUrl} trackingDataRef={riggingDataRef} />
+          <SkeletonVisualizer trackingDataRef={riggingDataRef} />
         </Canvas>
       </div>
 
