@@ -1,5 +1,5 @@
 import { VRM, VRMHumanBoneName } from "@pixiv/three-vrm";
-import { Vector3, Quaternion, Matrix4 } from "three";
+import { Vector3, Quaternion, Matrix4, Euler } from "three";
 import { Landmark } from "@mediapipe/tasks-vision";
 import { applyBoneRotation } from "./ik-utils";
 import { getLandmarkVector } from "./ik-utils";
@@ -138,20 +138,10 @@ const rigFingers = (
   const humanoid = vrm.humanoid;
   if (!humanoid) return;
 
-  // --- NEW: Define the Thumb Rotation Offset ---
-  // This is our calibration tool. We'll create a quaternion that represents a
-  // small, constant rotation to apply only to the thumb bones.
   const thumbOffset = new Quaternion();
-
-  // We'll start by rotating around the Y-axis (Yaw) to fix the thumb
-  // shooting out to the side vs. curling in.
-  // This is the value you will experiment with!
-  const yawAngle = side === "Left" ? Math.PI / 4 : -Math.PI / 4; // Start with 30 degrees
-
+  const yawAngle = side === "Left" ? Math.PI / 4 : -Math.PI / 4;
   thumbOffset.setFromAxisAngle(new Vector3(0, 1, 0), yawAngle);
-  // --- END NEW ---
 
-  // --- MODIFIED: Changed loop to get finger name ---
   for (const [fingerName, joints] of Object.entries(fingerMap)) {
     for (const joint of joints) {
       const fingerBone = humanoid.getNormalizedBoneNode(joint.bone);
@@ -179,16 +169,39 @@ const rigFingers = (
         localTargetDirection
       );
 
-      // --- MODIFIED: Apply offset only to the thumb ---
       if (fingerName === "Thumb") {
-        // For the thumb, we combine the calculated rotation with our offset.
-        // The multiplication order (offset * local) means we apply the tracking
-        // rotation first, and then apply our manual tweak on top of that.
         const finalThumbQuat = thumbOffset.clone().multiply(localQuat);
         fingerBone.quaternion.slerp(finalThumbQuat, 0.6);
       } else {
-        // For all other fingers, we use the original logic.
-        fingerBone.quaternion.slerp(localQuat, 0.6);
+        // --- NEW: Hinge Constraint Logic for Fingers ---
+
+        // Check if the bone is an intermediate or distal joint.
+        // These joints should only bend on one axis (like a hinge).
+        const isHingeJoint =
+          joint.bone.includes("Intermediate") || joint.bone.includes("Distal");
+
+        if (isHingeJoint) {
+          // 1. Convert the full rotation to Euler angles.
+          const euler = new Euler().setFromQuaternion(localQuat, "XYZ");
+
+          // 2. Zero out the rotations we want to disable.
+          // For VRM models, a bone's length is on the X-axis.
+          // - Y-axis rotation is the side-to-side wiggle.
+          // - X-axis rotation is the twist.
+          // We set them to 0 to disable them.
+          euler.y = 0;
+          euler.x = 0;
+
+          // 3. Convert the constrained Euler angles back to a quaternion.
+          const constrainedQuat = new Quaternion().setFromEuler(euler);
+
+          // 4. Apply the constrained rotation.
+          fingerBone.quaternion.slerp(constrainedQuat, 0.6);
+        } else {
+          // This is the Proximal joint (at the base of the finger).
+          // We allow it to have unconstrained rotation for more natural side-to-side movement.
+          fingerBone.quaternion.slerp(localQuat, 0.6);
+        }
       }
     }
   }
