@@ -7,8 +7,9 @@ import {
   HolisticLandmarkerResult,
   Category,
 } from "@mediapipe/tasks-vision";
+import { usePerformanceStore } from "@/store/performance-store";
+import { useEditorStore } from "@/store/editor-store";
 
-// 1. DEFINE OUR DATA STRUCTURES
 type Blendshape = Category;
 
 export interface TrackingData {
@@ -36,12 +37,29 @@ export function useHolisticTracking() {
   const workerRef = useRef<Worker | null>(null);
   const isProcessing = useRef(false);
 
-  // 2. CONSOLIDATE ALL TRACKING DATA INTO A SINGLE useRef
-  // This is much cleaner than having 6 separate refs.
-  const trackingDataRef = useRef<TrackingData>(initialTrackingData);
+  // --- NEW: Separate refs for different coordinate systems ---
+  const riggingDataRef = useRef<TrackingData>({ ...initialTrackingData }); // For the 3D Avatar
+  const debugDataRef = useRef<TrackingData>({ ...initialTrackingData }); // For the 2D Debug Canvas
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const animationFrameId = useRef<number | null>(null);
+  const addWorkerTiming = usePerformanceStore((state) => state.addWorkerTiming);
+  const lastMessageTimeRef = useRef<number | null>(null);
+  const isSmoothingEnabled = useEditorStore(
+    (state) => state.isSmoothingEnabled
+  );
+  const globalSmoothingFactor = useEditorStore(
+    (state) => state.globalSmoothingFactor
+  );
+
+  useEffect(() => {
+    if (workerRef.current) {
+      workerRef.current.postMessage({
+        type: "UPDATE_SMOOTHING",
+        payload: globalSmoothingFactor,
+      });
+    }
+  }, [globalSmoothingFactor]);
 
   useEffect(() => {
     setTrackingStatus("INITIALIZING");
@@ -55,36 +73,46 @@ export function useHolisticTracking() {
         case "READY":
           setTrackingStatus("IDLE");
           break;
-        case "RESULTS":
-          const results = payload as HolisticLandmarkerResult;
+        case "RESULTS": {
+          const now = performance.now();
+          if (lastMessageTimeRef.current) {
+            addWorkerTiming(now - lastMessageTimeRef.current);
+          }
+          lastMessageTimeRef.current = now;
 
-          // 3. UPDATE PROPERTIES OF THE SINGLE trackingData OBJECT
-          // This logic is the same, but it targets the properties of our new object.
-          if (results.faceBlendshapes?.length > 0) {
-            trackingDataRef.current.blendshapes =
-              results.faceBlendshapes[0].categories;
-          }
-          if (results.poseLandmarks?.length > 0) {
-            trackingDataRef.current.poseLandmarks = results.poseLandmarks[0];
-          }
-          if (results.poseWorldLandmarks?.length > 0) {
-            trackingDataRef.current.poseWorldLandmarks =
-              results.poseWorldLandmarks[0];
-          }
-          if (results.faceLandmarks?.length > 0) {
-            trackingDataRef.current.faceLandmarks = results.faceLandmarks[0];
-          }
-          if (results.leftHandWorldLandmarks?.length > 0) {
-            trackingDataRef.current.leftHandWorldLandmarks =
-              results.leftHandWorldLandmarks[0];
-          }
-          if (results.rightHandWorldLandmarks?.length > 0) {
-            trackingDataRef.current.rightHandWorldLandmarks =
-              results.rightHandWorldLandmarks[0];
-          }
+          // --- NEW: Destructure the payload to get both raw and rigging data ---
+          const { raw, rigging } = payload as {
+            raw: HolisticLandmarkerResult;
+            rigging: HolisticLandmarkerResult;
+          };
+
+          // Populate the rigging data ref for the avatar
+          if (rigging.faceBlendshapes?.length > 0)
+            riggingDataRef.current.blendshapes =
+              rigging.faceBlendshapes[0].categories;
+          if (rigging.poseLandmarks?.length > 0)
+            riggingDataRef.current.poseLandmarks = rigging.poseLandmarks[0];
+          if (rigging.poseWorldLandmarks?.length > 0)
+            riggingDataRef.current.poseWorldLandmarks =
+              rigging.poseWorldLandmarks[0];
+          if (rigging.faceLandmarks?.length > 0)
+            riggingDataRef.current.faceLandmarks = rigging.faceLandmarks[0];
+          if (rigging.leftHandWorldLandmarks?.length > 0)
+            riggingDataRef.current.leftHandWorldLandmarks =
+              rigging.leftHandWorldLandmarks[0];
+          if (rigging.rightHandWorldLandmarks?.length > 0)
+            riggingDataRef.current.rightHandWorldLandmarks =
+              rigging.rightHandWorldLandmarks[0];
+
+          // Populate the debug data ref with the untransformed data
+          if (raw.poseLandmarks?.length > 0)
+            debugDataRef.current.poseLandmarks = raw.poseLandmarks[0];
+          if (raw.faceLandmarks?.length > 0)
+            debugDataRef.current.faceLandmarks = raw.faceLandmarks[0];
 
           isProcessing.current = false;
           break;
+        }
         case "ERROR":
           console.error("[Worker Error]", payload);
           setTrackingStatus("ERROR");
@@ -100,36 +128,35 @@ export function useHolisticTracking() {
       workerRef.current?.removeEventListener("message", onMessage);
       workerRef.current?.terminate();
     };
-  }, []);
+  }, [addWorkerTiming]);
 
+  // The rest of the hook (predictWebcam, useEffect for tracking, toggleTracking) remains the same.
   const predictWebcam = useCallback(async () => {
     if (
       !workerRef.current ||
       isProcessing.current ||
       trackingStatus !== "RUNNING"
     ) {
-      animationFrameId.current = window.requestAnimationFrame(predictWebcam);
+      animationFrameId.current = requestAnimationFrame(predictWebcam);
       return;
     }
-
     isProcessing.current = true;
-
     const video = videoRef.current;
     if (!video || video.readyState < 2) {
       isProcessing.current = false;
-      animationFrameId.current = window.requestAnimationFrame(predictWebcam);
+      animationFrameId.current = requestAnimationFrame(predictWebcam);
       return;
     }
-
     const imageBitmap = await createImageBitmap(video);
-    workerRef.current.postMessage({ type: "PREDICT", payload: imageBitmap }, [
-      imageBitmap,
-    ]);
-
-    animationFrameId.current = window.requestAnimationFrame(predictWebcam);
-  }, [trackingStatus]);
+    workerRef.current.postMessage(
+      { type: "PREDICT", payload: { imageBitmap, isSmoothingEnabled } },
+      [imageBitmap]
+    );
+    animationFrameId.current = requestAnimationFrame(predictWebcam);
+  }, [trackingStatus, isSmoothingEnabled]);
 
   useEffect(() => {
+    // This effect remains identical
     const video = videoRef.current;
     if (trackingStatus === "RUNNING") {
       navigator.mediaDevices
@@ -138,8 +165,7 @@ export function useHolisticTracking() {
           if (video) {
             video.srcObject = stream;
             video.onplaying = () => {
-              animationFrameId.current =
-                window.requestAnimationFrame(predictWebcam);
+              animationFrameId.current = requestAnimationFrame(predictWebcam);
             };
             video.play();
           }
@@ -156,11 +182,10 @@ export function useHolisticTracking() {
         video.srcObject = null;
       }
       if (animationFrameId.current) {
-        window.cancelAnimationFrame(animationFrameId.current);
+        cancelAnimationFrame(animationFrameId.current);
         animationFrameId.current = null;
       }
     }
-
     return () => {
       if (video && video.srcObject) {
         (video.srcObject as MediaStream)
@@ -168,22 +193,20 @@ export function useHolisticTracking() {
           .forEach((track) => track.stop());
       }
       if (animationFrameId.current) {
-        window.cancelAnimationFrame(animationFrameId.current);
+        cancelAnimationFrame(animationFrameId.current);
       }
     };
   }, [trackingStatus, predictWebcam]);
 
   const toggleTracking = () => {
-    if (trackingStatus === "RUNNING") {
-      setTrackingStatus("IDLE");
-    } else if (trackingStatus === "IDLE") {
-      setTrackingStatus("RUNNING");
-    }
+    if (trackingStatus === "RUNNING") setTrackingStatus("IDLE");
+    else if (trackingStatus === "IDLE") setTrackingStatus("RUNNING");
   };
 
   return {
     videoRef,
-    trackingDataRef,
+    riggingDataRef, // The transformed data for the avatar
+    debugDataRef, // The raw data for the debug panel
     trackingStatus,
     toggleTracking,
   };

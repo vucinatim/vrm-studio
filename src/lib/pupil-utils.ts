@@ -163,8 +163,7 @@ export const calculateGaze = (
 export const rigPupils = (
   vrm: VRM,
   landmarks: Landmark[],
-  gazeSmoother: GazeSmoother, // The smoother is now a required parameter
-  smoothingFactor: number
+  gazeSmoother: GazeSmoother // The smoother is now a required parameter
 ) => {
   if (!vrm.lookAt?.target) return;
 
@@ -186,7 +185,7 @@ export const rigPupils = (
     );
 
     // The smoothing is handled by GazeSmoother, so we apply the position directly.
-    target.position.lerp(newPosition, smoothingFactor * 0.5);
+    target.position.lerp(newPosition, 0.3);
   }
 };
 

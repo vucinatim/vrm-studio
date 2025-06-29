@@ -10,8 +10,13 @@ import { initialCamera, useEditorStore } from "@/store/editor-store";
 import { MainOverlay } from "./main-overlay";
 
 export function VTubeStudio() {
-  const { videoRef, trackingDataRef, toggleTracking, trackingStatus } =
-    useHolisticTracking();
+  const {
+    videoRef,
+    debugDataRef,
+    riggingDataRef,
+    toggleTracking,
+    trackingStatus,
+  } = useHolisticTracking();
   const {
     cameraControls,
     showGround,
@@ -92,13 +97,13 @@ export function VTubeStudio() {
             </mesh>
           )}
 
-          <Avatar modelUrl={modelUrl} trackingDataRef={trackingDataRef} />
+          <Avatar modelUrl={modelUrl} trackingDataRef={riggingDataRef} />
         </Canvas>
       </div>
 
       <MainOverlay
         videoRef={videoRef}
-        trackingDataRef={trackingDataRef}
+        trackingDataRef={debugDataRef}
         toggleTracking={toggleTracking}
         trackingStatus={trackingStatus}
       />

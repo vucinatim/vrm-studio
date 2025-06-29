@@ -2,7 +2,7 @@ import { VRM } from "@pixiv/three-vrm";
 import * as THREE from "three";
 import { TrackingData } from "@/hooks/use-holistic-tracking";
 import { applyBlendshapes } from "./blendshape-utils";
-import { HeadSmoother, rigHead } from "./head-utils";
+import { rigHead } from "./head-utils";
 import { rigPose } from "./pose-utils";
 import { rigHands } from "./hand-utils";
 import { GazeSmoother, rigPupils } from "./pupil-utils";
@@ -18,7 +18,6 @@ export interface SolverConfig {
   isHandTrackingEnabled: boolean;
   isLegTrackingEnabled: boolean;
   isPupilTrackingEnabled: boolean;
-  smoothingFactor: number;
 }
 
 /**
@@ -29,7 +28,6 @@ export interface SolverConfig {
 export class VRMRigSolver {
   private vrm: VRM;
   private lookAtTarget = new THREE.Object3D();
-  private headSmoother = new HeadSmoother();
   private gazeSmoother = new GazeSmoother(0.1, 0.1);
 
   /**
@@ -71,7 +69,7 @@ export class VRMRigSolver {
     // --- Head Rotation ---
     // Uses faceLandmarks (screen space) for precise head orientation.
     if (config.isHeadTrackingEnabled && trackingData.faceLandmarks.length > 0) {
-      rigHead(this.vrm, trackingData.faceLandmarks, this.headSmoother);
+      rigHead(this.vrm, trackingData.faceLandmarks, 0.3);
     }
 
     // --- Pupil Tracking ---
@@ -79,12 +77,7 @@ export class VRMRigSolver {
       config.isPupilTrackingEnabled &&
       trackingData.faceLandmarks.length > 0
     ) {
-      rigPupils(
-        this.vrm,
-        trackingData.faceLandmarks,
-        this.gazeSmoother,
-        config.smoothingFactor
-      );
+      rigPupils(this.vrm, trackingData.faceLandmarks, this.gazeSmoother);
     }
 
     // --- Full Body & Limb Pose ---
@@ -97,8 +90,7 @@ export class VRMRigSolver {
         trackingData.poseWorldLandmarks, // Use world landmarks for 3D rigging
         {
           enableLegs: config.isLegTrackingEnabled,
-        },
-        config.smoothingFactor
+        }
       );
     }
 
@@ -107,8 +99,7 @@ export class VRMRigSolver {
       rigHands(
         this.vrm,
         trackingData.leftHandWorldLandmarks,
-        trackingData.rightHandWorldLandmarks,
-        config.smoothingFactor
+        trackingData.rightHandWorldLandmarks
       );
     }
 

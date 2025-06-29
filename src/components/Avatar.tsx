@@ -27,7 +27,6 @@ export function Avatar({ modelUrl, trackingDataRef }: AvatarProps) {
     isHandTrackingEnabled,
     isLegTrackingEnabled,
     setMorphTargetDictionary,
-    smoothingFactor,
     areShadowsEnabled,
   } = useEditorStore();
 
@@ -94,7 +93,6 @@ export function Avatar({ modelUrl, trackingDataRef }: AvatarProps) {
           isHeadTrackingEnabled,
           isHandTrackingEnabled,
           isLegTrackingEnabled,
-          smoothingFactor,
         },
         delta
       );

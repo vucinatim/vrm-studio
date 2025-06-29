@@ -1,4 +1,7 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
+
+export type LightName = "ambient" | "directional" | "spot1" | "spot2";
 
 export interface LightSettings {
   intensity: number;
@@ -51,6 +54,10 @@ interface EditorState {
   toggleLegTracking: () => void;
   isPupilTrackingEnabled: boolean;
   togglePupilTracking: () => void;
+  isSmoothingEnabled: boolean;
+  toggleSmoothing: () => void;
+  globalSmoothingFactor: number;
+  setGlobalSmoothingFactor: (factor: number) => void;
 
   showTrackingDebug: boolean;
   set: (fn: (state: EditorState) => Partial<EditorState>) => void;
@@ -59,8 +66,6 @@ interface EditorState {
   setMorphTargetDictionary: (
     dictionary: { [key: string]: number } | undefined
   ) => void;
-  smoothingFactor: number;
-  setSmoothingFactor: (factor: number) => void;
   showStats: boolean;
   toggleShowStats: () => void;
   areShadowsEnabled: boolean;
@@ -72,86 +77,112 @@ export const initialCamera = {
   position: [0, 1.5, -1.5] as [number, number, number],
 };
 
-export const useEditorStore = create<EditorState>((set) => ({
-  cameraControls: { ...initialCamera },
-  resetCamera: () => set({ cameraControls: { ...initialCamera } }),
+export const useEditorStore = create<EditorState>()(
+  persist(
+    (set) => ({
+      cameraControls: { ...initialCamera },
+      resetCamera: () => set({ cameraControls: { ...initialCamera } }),
 
-  showGround: true,
-  toggleGround: () => set((state) => ({ showGround: !state.showGround })),
+      showGround: true,
+      toggleGround: () => set((state) => ({ showGround: !state.showGround })),
 
-  lights: {
-    ambient: { intensity: 0.2 },
-    directional: {
-      intensity: 1.5,
-      color: "#ffffff",
-      position: [2, 5, -3],
-    },
-    spot1: {
-      intensity: 0.3,
-      color: "#aaccff",
-      position: [-2, 1, -4],
-    },
-    spot2: {
-      intensity: 0.2,
-      color: "#ff88aa",
-      position: [0, -2, 5],
-    },
-  },
-  setLight: (type, settings) =>
-    set((state) => ({
       lights: {
-        ...state.lights,
-        [type]: { ...state.lights[type], ...settings },
+        ambient: { intensity: 0.2 },
+        directional: {
+          intensity: 1.5,
+          color: "#ffffff",
+          position: [2, 5, -3],
+        },
+        spot1: {
+          intensity: 0.3,
+          color: "#aaccff",
+          position: [-2, 1, -4],
+        },
+        spot2: {
+          intensity: 0.2,
+          color: "#ff88aa",
+          position: [0, -2, 5],
+        },
       },
-    })),
+      setLight: (type, settings) =>
+        set((state) => ({
+          lights: {
+            ...state.lights,
+            [type]: { ...state.lights[type], ...settings },
+          },
+        })),
 
-  modelUrl: "/boy.vrm",
-  setModelUrl: (url) => set({ modelUrl: url }),
+      modelUrl: "/boy.vrm",
+      setModelUrl: (url) => set({ modelUrl: url }),
 
-  hideUiOnMouseOut: false,
-  toggleHideUiOnMouseOut: () =>
-    set((state) => ({ hideUiOnMouseOut: !state.hideUiOnMouseOut })),
+      hideUiOnMouseOut: false,
+      toggleHideUiOnMouseOut: () =>
+        set((state) => ({ hideUiOnMouseOut: !state.hideUiOnMouseOut })),
 
-  // Tracking toggles
-  isFaceTrackingEnabled: true,
-  toggleFaceTracking: () =>
-    set((state) => ({ isFaceTrackingEnabled: !state.isFaceTrackingEnabled })),
-  isPoseTrackingEnabled: true,
-  togglePoseTracking: () =>
-    set((state) => ({ isPoseTrackingEnabled: !state.isPoseTrackingEnabled })),
-  isHeadTrackingEnabled: true,
-  toggleHeadTracking: () =>
-    set((state) => ({ isHeadTrackingEnabled: !state.isHeadTrackingEnabled })),
-  isHandTrackingEnabled: true,
-  toggleHandTracking: () =>
-    set((state) => ({ isHandTrackingEnabled: !state.isHandTrackingEnabled })),
-  isLegTrackingEnabled: false,
-  toggleLegTracking: () =>
-    set((state) => ({ isLegTrackingEnabled: !state.isLegTrackingEnabled })),
-  isPupilTrackingEnabled: true,
-  togglePupilTracking: () =>
-    set((state) => ({ isPupilTrackingEnabled: !state.isPupilTrackingEnabled })),
+      // Tracking toggles
+      isFaceTrackingEnabled: true,
+      toggleFaceTracking: () =>
+        set((state) => ({
+          isFaceTrackingEnabled: !state.isFaceTrackingEnabled,
+        })),
+      isPoseTrackingEnabled: true,
+      togglePoseTracking: () =>
+        set((state) => ({
+          isPoseTrackingEnabled: !state.isPoseTrackingEnabled,
+        })),
+      isHeadTrackingEnabled: true,
+      toggleHeadTracking: () =>
+        set((state) => ({
+          isHeadTrackingEnabled: !state.isHeadTrackingEnabled,
+        })),
+      isHandTrackingEnabled: true,
+      toggleHandTracking: () =>
+        set((state) => ({
+          isHandTrackingEnabled: !state.isHandTrackingEnabled,
+        })),
+      isLegTrackingEnabled: false,
+      toggleLegTracking: () =>
+        set((state) => ({ isLegTrackingEnabled: !state.isLegTrackingEnabled })),
+      isPupilTrackingEnabled: true,
+      togglePupilTracking: () =>
+        set((state) => ({
+          isPupilTrackingEnabled: !state.isPupilTrackingEnabled,
+        })),
+      isSmoothingEnabled: true,
+      toggleSmoothing: () =>
+        set((state) => ({ isSmoothingEnabled: !state.isSmoothingEnabled })),
+      globalSmoothingFactor: 0.2,
+      setGlobalSmoothingFactor: (factor: number) =>
+        set({ globalSmoothingFactor: factor }),
 
-  showTrackingDebug: true,
+      showTrackingDebug: true,
 
-  set: (fn: (state: EditorState) => Partial<EditorState>) => set(fn),
+      set: (fn: (state: EditorState) => Partial<EditorState>) => set(fn),
 
-  morphTargetDictionary: undefined,
-  setMorphTargetDictionary: (
-    dictionary: { [key: string]: number } | undefined
-  ) => set({ morphTargetDictionary: dictionary }),
-  smoothingFactor: 0.2,
-  setSmoothingFactor: (factor: number) => set({ smoothingFactor: factor }),
-  showStats: true,
-  toggleShowStats: () => set((state) => ({ showStats: !state.showStats })),
-  areShadowsEnabled: true,
-  toggleShadows: () =>
-    set((state) => ({ areShadowsEnabled: !state.areShadowsEnabled })),
-  setFaceTracking: (value: boolean) => set({ isFaceTrackingEnabled: value }),
-  setPoseTracking: (value: boolean) => set({ isPoseTrackingEnabled: value }),
-  setHeadTracking: (value: boolean) => set({ isHeadTrackingEnabled: value }),
-  setHandTracking: (value: boolean) => set({ isHandTrackingEnabled: value }),
-  setLegTracking: (value: boolean) => set({ isLegTrackingEnabled: value }),
-  setPupilTracking: (value: boolean) => set({ isPupilTrackingEnabled: value }),
-  setShadows: (value: boolean) => set({ areShadowsEnabled: value }),
-}));
+      morphTargetDictionary: undefined,
+      setMorphTargetDictionary: (
+        dictionary: { [key: string]: number } | undefined
+      ) => set({ morphTargetDictionary: dictionary }),
+      showStats: true,
+      toggleShowStats: () => set((state) => ({ showStats: !state.showStats })),
+      areShadowsEnabled: true,
+      toggleShadows: () =>
+        set((state) => ({ areShadowsEnabled: !state.areShadowsEnabled })),
+      setFaceTracking: (value: boolean) =>
+        set({ isFaceTrackingEnabled: value }),
+      setPoseTracking: (value: boolean) =>
+        set({ isPoseTrackingEnabled: value }),
+      setHeadTracking: (value: boolean) =>
+        set({ isHeadTrackingEnabled: value }),
+      setHandTracking: (value: boolean) =>
+        set({ isHandTrackingEnabled: value }),
+      setLegTracking: (value: boolean) => set({ isLegTrackingEnabled: value }),
+      setPupilTracking: (value: boolean) =>
+        set({ isPupilTrackingEnabled: value }),
+      setShadows: (value: boolean) => set({ areShadowsEnabled: value }),
+    }),
+    {
+      name: "vtube-studio-editor-storage",
+    }
+  )
+);

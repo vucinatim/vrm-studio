@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { usePerformanceStore } from "@/store/performance-store";
 
 function Section({
   title,
@@ -63,13 +64,18 @@ export function SettingsPanel() {
     toggleLegTracking,
     isPupilTrackingEnabled,
     togglePupilTracking,
-    smoothingFactor,
-    setSmoothingFactor,
     showStats,
     toggleShowStats,
     areShadowsEnabled,
     toggleShadows,
+    isSmoothingEnabled,
+    toggleSmoothing,
+    globalSmoothingFactor,
+    setGlobalSmoothingFactor,
   } = useEditorStore();
+  const averageWorkerTime = usePerformanceStore(
+    (state) => state.averageWorkerTime
+  );
 
   return (
     <Card className="bg-background/30 backdrop-blur-sm">
@@ -77,6 +83,16 @@ export function SettingsPanel() {
         <CardTitle>Settings</CardTitle>
       </CardHeader>
       <CardContent>
+        <Section title="Performance">
+          <Setting
+            label="Avg. Processing Time"
+            control={
+              <span className="text-sm font-medium font-mono">
+                {averageWorkerTime.toFixed(2)} ms
+              </span>
+            }
+          />
+        </Section>
         <Section title="Camera">
           <Button onClick={resetCamera} className="w-full">
             Reset Camera
@@ -210,15 +226,24 @@ export function SettingsPanel() {
               onCheckedChange={togglePupilTracking}
             />
           </div>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="smoothing-enabled">Enable Smoothing</Label>
+            <Switch
+              id="smoothing-enabled"
+              checked={isSmoothingEnabled}
+              onCheckedChange={toggleSmoothing}
+            />
+          </div>
           <Setting
-            label="Motion Smoothing"
+            label="Smoothing Amount"
             control={
               <Slider
-                value={[smoothingFactor]}
-                onValueChange={([val]) => setSmoothingFactor(val)}
+                value={[globalSmoothingFactor]}
+                onValueChange={([val]) => setGlobalSmoothingFactor(val)}
                 min={0}
                 max={1}
                 step={0.01}
+                disabled={!isSmoothingEnabled}
               />
             }
           />
