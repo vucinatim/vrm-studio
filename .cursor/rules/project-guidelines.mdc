@@ -1,0 +1,64 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Project Guidelines
+
+## File Naming Conventions
+- Always name filenames with "kebab-case".
+- **Exception**: Files inside the `convex` folder should be named with "snake_case".
+
+## Package Manager
+- Always use `pnpm` as the package manager.
+
+## Component and Function Ordering
+When multiple components or functions are in the same file, please adhere to the following order:
+1.  Parent components
+2.  Children components
+3.  Utility functions
+
+## shadcn/ui
+To add shadcn/ui components, use the following command:
+`pnpm dlx shadcn@latest add [component]`
+
+---
+
+# Project Vision: The Magic Mirror
+
+We are creating a live, browser-based digital persona. A user opens a web page and sees an animated character that mirrors their expressions and movements in real-time.
+
+## Core Experience
+- **Instant On**: No installation required. The experience starts with a single click.
+- **Effortless Connection**: The user's natural expressions instantly animate their digital self.
+- **Personal and Expressive**: The goal is to capture the user's personality in the animation.
+
+## Guiding Principles
+- **Zero-Friction**: As easy as a video call.
+- **Real-Time First**: Low latency is paramount.
+- **Accessible**: Works on any modern computer with a webcam.
+
+---
+
+# Technical Architecture
+
+## Core Framework & Language
+- **Framework**: Next.js (App Router)
+- **Language**: TypeScript
+
+## Real-Time Engine
+- **3D Graphics**: Three.js
+- **React Integration**: React Three Fiber (R3F)
+- **Face Tracking**: Google's MediaPipe (Face Mesh)
+
+## UI & Styling
+- **Component Library**: shadcn/ui
+- **CSS Framework**: Tailwind CSS
+- **Icons**: Lucide React
+
+## State Management & Data
+- **Global State**: Zustand
+- **Schema & Validation**: Zod
+
+## Utility & Helper Libraries
+- **R3F Helpers**: drei
