@@ -145,8 +145,8 @@ export const calculateGaze = (
     const sensitivity = 8;
 
     return {
-      x: clamp(normalizedGazeX * sensitivity, -1, 1),
-      y: clamp(normalizedGazeY * sensitivity * -1, -1, 1),
+      x: clamp(normalizedGazeX * sensitivity * -1, -1, 1),
+      y: clamp(normalizedGazeY * sensitivity, -1, 1),
     };
   } catch (e) {
     console.error("Error calculating gaze:", e);
