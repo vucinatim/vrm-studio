@@ -34,8 +34,9 @@ interface EditorState {
   ) => void;
 
   // Model
-  modelUrl: string;
-  setModelUrl: (url: string) => void;
+  selectedModelUrl: string;
+  selectedModel: string;
+  setSelectedModel: (model: string) => void;
 
   // UI
   hideUiOnMouseOut: boolean;
@@ -80,30 +81,41 @@ export const initialCamera = {
 };
 
 const modelCameraPositions = {
-  "/witch.vrm": {
+  witch: {
     target: [0, 1.25, 0],
     position: [0, 1.25, -1.5],
   },
-  "/girl.vrm": {
+  girl: {
     target: [0, 1.35, 0],
     position: [0, 1.35, -1.5],
   },
-  "/boy.vrm": {
+  boy: {
     target: [0, 1.45, 0],
     position: [0, 1.45, -1.5],
   },
-  "/horny.vrm": {
+  horny: {
     target: [0, 1.35, 0],
     position: [0, 1.35, -1.5],
   },
-  "/cute.vrm": {
+  cute: {
     target: [0, 1.4, 0],
     position: [0, 1.4, -1.5],
   },
-  "/cat.vrm": {
+  cat: {
     target: [0, 1.5, 0],
     position: [0, 1.5, -1.5],
   },
+};
+
+const getModelUrl = (modelName: string) => {
+  return `vrm/${modelName}.vrm`;
+};
+
+const getModelCameraPositions = (modelName: string) => {
+  return (
+    modelCameraPositions[modelName as keyof typeof modelCameraPositions] ||
+    modelCameraPositions["boy"]
+  );
 };
 
 export const useEditorStore = create<EditorState>()(
@@ -111,11 +123,8 @@ export const useEditorStore = create<EditorState>()(
     (set, get) => ({
       cameraControls: { ...initialCamera },
       resetCamera: () => {
-        const currentModel = get().modelUrl;
-        const newCamera =
-          modelCameraPositions[
-            currentModel as keyof typeof modelCameraPositions
-          ] || modelCameraPositions["/boy.vrm"];
+        const currentModel = get().selectedModel;
+        const newCamera = getModelCameraPositions(currentModel);
         set({
           cameraControls: {
             target: newCamera.target as [number, number, number],
@@ -153,14 +162,14 @@ export const useEditorStore = create<EditorState>()(
           },
         })),
 
-      modelUrl: "/boy.vrm",
-      setModelUrl: (url) => {
-        const newCamera =
-          modelCameraPositions[url as keyof typeof modelCameraPositions] ||
-          modelCameraPositions["/boy.vrm"];
+      selectedModel: "boy",
+      selectedModelUrl: getModelUrl("boy"),
+      setSelectedModel: (name) => {
+        const newCamera = getModelCameraPositions(name);
 
         set({
-          modelUrl: url,
+          selectedModel: name,
+          selectedModelUrl: getModelUrl(name),
           cameraControls: {
             target: newCamera.target as [number, number, number],
             position: newCamera.position as [number, number, number],

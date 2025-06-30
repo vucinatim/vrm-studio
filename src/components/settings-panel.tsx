@@ -67,8 +67,8 @@ export function SettingsPanel() {
     resetCamera,
     lights,
     setLight,
-    modelUrl,
-    setModelUrl,
+    selectedModel,
+    setSelectedModel,
     hideUiOnMouseOut,
     toggleHideUiOnMouseOut,
     showTrackingDebug,
@@ -110,17 +110,17 @@ export function SettingsPanel() {
           <Setting
             label="Avatar Model"
             control={
-              <Select onValueChange={setModelUrl} value={modelUrl}>
+              <Select onValueChange={setSelectedModel} value={selectedModel}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Select a model" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="/witch.vrm">Witch</SelectItem>
-                  <SelectItem value="/girl.vrm">Girl</SelectItem>
-                  <SelectItem value="/boy.vrm">Boy</SelectItem>
-                  <SelectItem value="/horny.vrm">Horny</SelectItem>
-                  <SelectItem value="/cute.vrm">Cute</SelectItem>
-                  <SelectItem value="/cat.vrm">Cat</SelectItem>
+                  <SelectItem value="witch">Witch</SelectItem>
+                  <SelectItem value="girl">Girl</SelectItem>
+                  <SelectItem value="boy">Boy</SelectItem>
+                  <SelectItem value="horny">Horny</SelectItem>
+                  <SelectItem value="cute">Cute</SelectItem>
+                  <SelectItem value="cat">Cat</SelectItem>
                 </SelectContent>
               </Select>
             }

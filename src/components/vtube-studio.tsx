@@ -22,7 +22,7 @@ export function VTubeStudio() {
     cameraControls,
     showGround,
     lights,
-    modelUrl,
+    selectedModelUrl,
     showStats,
     areShadowsEnabled,
     isGreenScreenEnabled,
@@ -102,7 +102,10 @@ export function VTubeStudio() {
             </mesh>
           )}
 
-          <Avatar modelUrl={modelUrl} trackingDataRef={riggingDataRef} />
+          <Avatar
+            modelUrl={selectedModelUrl}
+            trackingDataRef={riggingDataRef}
+          />
           <SkeletonVisualizer trackingDataRef={riggingDataRef} />
         </Canvas>
       </div>
