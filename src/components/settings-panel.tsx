@@ -6,37 +6,58 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { usePerformanceStore } from "@/store/performance-store";
-
-function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="space-y-4 py-4 border-b last:border-b-0">
-      <h3 className="text-lg font-medium">{title}</h3>
-      <div className="space-y-4">{children}</div>
-    </div>
-  );
-}
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 function Setting({
   label,
   control,
+  description,
 }: {
   label: string;
   control: React.ReactNode;
+  description?: string;
 }) {
   return (
     <div className="flex items-center justify-between">
-      <Label>{label}</Label>
+      <div className="flex flex-col">
+        <Label className="text-xs">{label}</Label>
+        {description && (
+          <p className="text-sm text-muted-foreground">{description}</p>
+        )}
+      </div>
       {control}
     </div>
+  );
+}
+
+function AccordionSection({
+  value,
+  title,
+  children,
+}: {
+  value: string;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <AccordionItem value={value} className="-mx-6 px-6 border-b-0 border-t">
+      <AccordionTrigger className="font-semibold">{title}</AccordionTrigger>
+      <AccordionContent className="space-y-4">{children}</AccordionContent>
+    </AccordionItem>
   );
 }
 
@@ -72,6 +93,8 @@ export function SettingsPanel() {
     toggleSmoothing,
     globalSmoothingFactor,
     setGlobalSmoothingFactor,
+    isGreenScreenEnabled,
+    toggleGreenScreen,
   } = useEditorStore();
   const averageWorkerTime = usePerformanceStore(
     (state) => state.averageWorkerTime
@@ -82,178 +105,210 @@ export function SettingsPanel() {
       <CardHeader>
         <CardTitle>Settings</CardTitle>
       </CardHeader>
-      <CardContent>
-        <Section title="Performance">
+      <CardContent className="space-y-4">
+        <div className="space-y-4">
           <Setting
-            label="Avg. Processing Time"
+            label="Avatar Model"
             control={
-              <span className="text-sm font-medium font-mono">
-                {averageWorkerTime.toFixed(2)} ms
-              </span>
+              <Select onValueChange={setModelUrl} value={modelUrl}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Select a model" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="/witch.vrm">Witch</SelectItem>
+                  <SelectItem value="/girl.vrm">Girl</SelectItem>
+                  <SelectItem value="/boy.vrm">Boy</SelectItem>
+                  <SelectItem value="/horny.vrm">Horny</SelectItem>
+                  <SelectItem value="/cute.vrm">Cute</SelectItem>
+                  <SelectItem value="/cat.vrm">Cat</SelectItem>
+                </SelectContent>
+              </Select>
             }
           />
-        </Section>
-        <Section title="Camera">
           <Button onClick={resetCamera} className="w-full">
             Reset Camera
           </Button>
-        </Section>
-
-        <Section title="Scene">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="show-ground">Show Ground</Label>
-            <Switch
-              id="show-ground"
-              checked={showGround}
-              onCheckedChange={(checked) =>
-                set(() => ({ showGround: checked }))
-              }
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <Label htmlFor="show-tracking-debug">Show Tracking Debug</Label>
-            <Switch
-              id="show-tracking-debug"
-              checked={showTrackingDebug}
-              onCheckedChange={(checked) =>
-                set(() => ({ showTrackingDebug: checked }))
-              }
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <Label htmlFor="show-stats">Show Stats</Label>
-            <Switch
-              id="show-stats"
-              checked={showStats}
-              onCheckedChange={toggleShowStats}
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <Label htmlFor="show-shadows">Enable Shadows</Label>
-            <Switch
-              id="show-shadows"
-              checked={areShadowsEnabled}
-              onCheckedChange={toggleShadows}
-            />
-          </div>
-        </Section>
-
-        <Section title="Lighting">
           <Setting
-            label="Ambient Intensity"
+            label="Hide UI on Mouse Out"
             control={
-              <Slider
-                value={[lights.ambient.intensity]}
-                onValueChange={([val]) =>
-                  setLight("ambient", { intensity: val })
-                }
-                max={2}
-                step={0.1}
+              <Switch
+                id="hide-ui"
+                checked={hideUiOnMouseOut}
+                onCheckedChange={toggleHideUiOnMouseOut}
               />
             }
           />
-          {/* Add controls for other lights here if needed */}
-        </Section>
+        </div>
 
-        <Section title="Model">
-          <div className="space-y-2">
-            <Label>Model URL</Label>
-            <Input
-              value={modelUrl}
-              onChange={(e) => setModelUrl(e.target.value)}
-              placeholder="/avatar.vrm"
+        <Accordion type="multiple" defaultValue={["scene", "tracking"]}>
+          <AccordionSection value="scene" title="Scene">
+            <Setting
+              label="Show Ground"
+              control={
+                <Switch
+                  id="show-ground"
+                  checked={showGround}
+                  onCheckedChange={(checked) =>
+                    set(() => ({ showGround: checked }))
+                  }
+                />
+              }
             />
-          </div>
-        </Section>
-
-        <Section title="UI">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="hide-ui">Hide UI on Mouse Out</Label>
-            <Switch
-              id="hide-ui"
-              checked={hideUiOnMouseOut}
-              onCheckedChange={toggleHideUiOnMouseOut}
+            <Setting
+              label="Enable Shadows"
+              control={
+                <Switch
+                  id="show-shadows"
+                  checked={areShadowsEnabled}
+                  onCheckedChange={toggleShadows}
+                />
+              }
             />
-          </div>
-        </Section>
-
-        <Section title="Tracking">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="face-tracking">Face Expressions</Label>
-            <Switch
-              id="face-tracking"
-              checked={isFaceTrackingEnabled}
-              onCheckedChange={toggleFaceTracking}
+            <Setting
+              label="Ambient Light"
+              control={
+                <Slider
+                  value={[lights.ambient.intensity]}
+                  onValueChange={([val]) =>
+                    setLight("ambient", { intensity: val })
+                  }
+                  max={2}
+                  step={0.1}
+                />
+              }
             />
-          </div>
-          <div className="flex items-center justify-between">
-            <Label htmlFor="pose-tracking">Pose Tracking</Label>
-            <Switch
-              id="pose-tracking"
-              checked={isPoseTrackingEnabled}
-              onCheckedChange={togglePoseTracking}
+            <Setting
+              label="Enable Green Screen"
+              control={
+                <Switch
+                  id="green-screen"
+                  checked={isGreenScreenEnabled}
+                  onCheckedChange={toggleGreenScreen}
+                />
+              }
             />
-          </div>
-          <div className="flex items-center justify-between">
-            <Label htmlFor="head-tracking">Head Tracking</Label>
-            <Switch
-              id="head-tracking"
-              checked={isHeadTrackingEnabled}
-              onCheckedChange={toggleHeadTracking}
+          </AccordionSection>
+          <AccordionSection value="tracking" title="Tracking">
+            <Setting
+              label="Face Expressions"
+              control={
+                <Switch
+                  id="face-tracking"
+                  checked={isFaceTrackingEnabled}
+                  onCheckedChange={toggleFaceTracking}
+                />
+              }
             />
-          </div>
-          <div className="flex items-center justify-between">
-            <Label htmlFor="hand-tracking">Hand Tracking</Label>
-            <Switch
-              id="hand-tracking"
-              checked={isHandTrackingEnabled}
-              onCheckedChange={toggleHandTracking}
+            <Setting
+              label="Pose Tracking"
+              control={
+                <Switch
+                  id="pose-tracking"
+                  checked={isPoseTrackingEnabled}
+                  onCheckedChange={togglePoseTracking}
+                />
+              }
             />
-          </div>
-          <div className="flex items-center justify-between">
-            <Label htmlFor="leg-tracking">Leg Tracking</Label>
-            <Switch
-              id="leg-tracking"
-              checked={isLegTrackingEnabled}
-              onCheckedChange={toggleLegTracking}
+            <Setting
+              label="Head Tracking"
+              control={
+                <Switch
+                  id="head-tracking"
+                  checked={isHeadTrackingEnabled}
+                  onCheckedChange={toggleHeadTracking}
+                />
+              }
             />
-          </div>
-          <div className="flex items-center justify-between">
-            <Label htmlFor="pupil-tracking">Pupil Tracking</Label>
-            <Switch
-              id="pupil-tracking"
-              checked={isPupilTrackingEnabled}
-              onCheckedChange={togglePupilTracking}
+            <Setting
+              label="Hand Tracking"
+              control={
+                <Switch
+                  id="hand-tracking"
+                  checked={isHandTrackingEnabled}
+                  onCheckedChange={toggleHandTracking}
+                />
+              }
             />
-          </div>
-          <div className="flex items-center justify-between">
-            <Label htmlFor="smoothing-enabled">Enable Smoothing</Label>
-            <Switch
-              id="smoothing-enabled"
-              checked={isSmoothingEnabled}
-              onCheckedChange={toggleSmoothing}
+            <Setting
+              label="Leg Tracking"
+              control={
+                <Switch
+                  id="leg-tracking"
+                  checked={isLegTrackingEnabled}
+                  onCheckedChange={toggleLegTracking}
+                />
+              }
             />
-          </div>
-          <Setting
-            label="Smoothing Amount"
-            control={
-              <Slider
-                value={[globalSmoothingFactor]}
-                onValueChange={([val]) => setGlobalSmoothingFactor(val)}
-                min={0}
-                max={1}
-                step={0.01}
-                disabled={!isSmoothingEnabled}
-              />
-            }
-          />
-        </Section>
-
-        <Section title="Avatar Debug">
-          <p className="text-sm text-muted-foreground">
-            Available morph targets for the loaded model.
-          </p>
-        </Section>
+            <Setting
+              label="Pupil Tracking"
+              control={
+                <Switch
+                  id="pupil-tracking"
+                  checked={isPupilTrackingEnabled}
+                  onCheckedChange={togglePupilTracking}
+                />
+              }
+            />
+            <Setting
+              label="Enable Smoothing"
+              control={
+                <Switch
+                  id="smoothing-enabled"
+                  checked={isSmoothingEnabled}
+                  onCheckedChange={toggleSmoothing}
+                />
+              }
+            />
+            <Setting
+              label="Smoothing Amount"
+              control={
+                <Slider
+                  value={[globalSmoothingFactor]}
+                  onValueChange={([val]) => setGlobalSmoothingFactor(val)}
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  disabled={!isSmoothingEnabled}
+                />
+              }
+            />
+          </AccordionSection>
+          <AccordionSection value="debug" title="Debug & Performance">
+            <Setting
+              label="Avg. Processing Time"
+              control={
+                <span className="text-sm font-medium font-mono">
+                  {averageWorkerTime.toFixed(2)} ms
+                </span>
+              }
+            />
+            <Setting
+              label="Show Tracking Debug"
+              control={
+                <Switch
+                  id="show-tracking-debug"
+                  checked={showTrackingDebug}
+                  onCheckedChange={(checked) =>
+                    set(() => ({ showTrackingDebug: checked }))
+                  }
+                />
+              }
+            />
+            <Setting
+              label="Show Stats"
+              control={
+                <Switch
+                  id="show-stats"
+                  checked={showStats}
+                  onCheckedChange={toggleShowStats}
+                />
+              }
+            />
+            <p className="text-sm text-muted-foreground pt-4">
+              Available morph targets for the loaded model will be shown here.
+            </p>
+          </AccordionSection>
+        </Accordion>
       </CardContent>
     </Card>
   );

@@ -25,6 +25,7 @@ export function VTubeStudio() {
     modelUrl,
     showStats,
     areShadowsEnabled,
+    isGreenScreenEnabled,
   } = useEditorStore();
 
   const controlsRef = useRef<OrbitControlsImpl>(null);
@@ -55,6 +56,9 @@ export function VTubeStudio() {
             fov: 30,
           }}
         >
+          {isGreenScreenEnabled && (
+            <color attach="background" args={["#00ff00"]} />
+          )}
           {showStats && (
             <Stats className="!absolute !top-8 !right-8 !left-auto" />
           )}

@@ -70,6 +70,8 @@ interface EditorState {
   toggleShowStats: () => void;
   areShadowsEnabled: boolean;
   toggleShadows: () => void;
+  isGreenScreenEnabled: boolean;
+  toggleGreenScreen: () => void;
 }
 
 export const initialCamera = {
@@ -77,11 +79,50 @@ export const initialCamera = {
   position: [0, 1.5, -1.5] as [number, number, number],
 };
 
+const modelCameraPositions = {
+  "/witch.vrm": {
+    target: [0, 1.25, 0],
+    position: [0, 1.25, -1.5],
+  },
+  "/girl.vrm": {
+    target: [0, 1.35, 0],
+    position: [0, 1.35, -1.5],
+  },
+  "/boy.vrm": {
+    target: [0, 1.45, 0],
+    position: [0, 1.45, -1.5],
+  },
+  "/horny.vrm": {
+    target: [0, 1.35, 0],
+    position: [0, 1.35, -1.5],
+  },
+  "/cute.vrm": {
+    target: [0, 1.4, 0],
+    position: [0, 1.4, -1.5],
+  },
+  "/cat.vrm": {
+    target: [0, 1.5, 0],
+    position: [0, 1.5, -1.5],
+  },
+};
+
 export const useEditorStore = create<EditorState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       cameraControls: { ...initialCamera },
-      resetCamera: () => set({ cameraControls: { ...initialCamera } }),
+      resetCamera: () => {
+        const currentModel = get().modelUrl;
+        const newCamera =
+          modelCameraPositions[
+            currentModel as keyof typeof modelCameraPositions
+          ] || modelCameraPositions["/boy.vrm"];
+        set({
+          cameraControls: {
+            target: newCamera.target as [number, number, number],
+            position: newCamera.position as [number, number, number],
+          },
+        });
+      },
 
       showGround: true,
       toggleGround: () => set((state) => ({ showGround: !state.showGround })),
@@ -113,7 +154,19 @@ export const useEditorStore = create<EditorState>()(
         })),
 
       modelUrl: "/boy.vrm",
-      setModelUrl: (url) => set({ modelUrl: url }),
+      setModelUrl: (url) => {
+        const newCamera =
+          modelCameraPositions[url as keyof typeof modelCameraPositions] ||
+          modelCameraPositions["/boy.vrm"];
+
+        set({
+          modelUrl: url,
+          cameraControls: {
+            target: newCamera.target as [number, number, number],
+            position: newCamera.position as [number, number, number],
+          },
+        });
+      },
 
       hideUiOnMouseOut: false,
       toggleHideUiOnMouseOut: () =>
@@ -168,6 +221,11 @@ export const useEditorStore = create<EditorState>()(
       areShadowsEnabled: true,
       toggleShadows: () =>
         set((state) => ({ areShadowsEnabled: !state.areShadowsEnabled })),
+      isGreenScreenEnabled: false,
+      toggleGreenScreen: () =>
+        set((state) => ({
+          isGreenScreenEnabled: !state.isGreenScreenEnabled,
+        })),
       setFaceTracking: (value: boolean) =>
         set({ isFaceTrackingEnabled: value }),
       setPoseTracking: (value: boolean) =>

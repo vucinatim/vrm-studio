@@ -193,7 +193,7 @@ export function SkeletonVisualizer({
   });
 
   return (
-    <group position={[0, 1.5, 0]}>
+    <group position={[0, 2.5, 0]}>
       {poseJoints.map((joint, i) => (
         <primitive key={`pose-joint-${i}`} object={joint} />
       ))}

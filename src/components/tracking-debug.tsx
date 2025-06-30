@@ -135,7 +135,7 @@ export function TrackingDebug({ trackingDataRef }: TrackingDebugProps) {
   }, [trackingDataRef]);
 
   return (
-    <Card>
+    <Card className="bg-background/30 backdrop-blur-sm">
       <CardHeader>
         <CardTitle>Tracking Debug</CardTitle>
       </CardHeader>
