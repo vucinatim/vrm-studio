@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { useHolisticTracking } from "@/hooks/use-holistic-tracking";
 import { Avatar } from "@/components/Avatar";
@@ -9,6 +9,7 @@ import { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { initialCamera, useEditorStore } from "@/store/editor-store";
 import { MainOverlay } from "@/components/main-overlay";
 import { SkeletonVisualizer } from "@/components/skeleton-visualizer";
+import { useCursorStyle } from "@/hooks/use-cursor-style";
 
 export function VTubeStudio() {
   const {
@@ -29,6 +30,8 @@ export function VTubeStudio() {
   } = useEditorStore();
 
   const controlsRef = useRef<OrbitControlsImpl>(null);
+  const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
+  useCursorStyle(canvas);
 
   useEffect(() => {
     if (controlsRef.current) {
@@ -51,6 +54,7 @@ export function VTubeStudio() {
       <div className="absolute inset-0 z-0">
         <Canvas
           shadows
+          onCreated={({ gl }) => setCanvas(gl.domElement)}
           camera={{
             ...initialCamera,
             fov: 30,
