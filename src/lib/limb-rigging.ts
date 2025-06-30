@@ -76,7 +76,7 @@ export const rigLimbs = (
   bones: Bones,
   boneLengths: BoneLengths,
   options: { enableLegs: boolean },
-  smoothingFactor: number = 0.5
+  smoothingFactor: number = 0.4
 ) => {
   const parentRotations: { [key: string]: Quaternion } = {
     leftUpperArm: bones.leftUpperArm!.parent!.getWorldQuaternion(

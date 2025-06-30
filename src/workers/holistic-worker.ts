@@ -137,7 +137,7 @@ self.onmessage = async (event) => {
       await initializeHolistic();
       break;
     case "UPDATE_SMOOTHING":
-      Q = 0.01 + payload * 0.5;
+      Q = 0.01 + payload * 0.2;
       initializeFilters();
       break;
     case "PREDICT":
@@ -157,12 +157,12 @@ self.onmessage = async (event) => {
               faceLandmarks: rawResults.faceLandmarks?.map((l) =>
                 smoothLandmarks(l, faceLandmarkFilters)
               ),
-              poseLandmarks: rawResults.poseLandmarks?.map((l) =>
-                smoothLandmarks(l, poseScreenLandmarkFilters)
-              ),
-              poseWorldLandmarks: rawResults.poseWorldLandmarks?.map((l) =>
-                smoothLandmarks(l, poseWorldLandmarkFilters)
-              ),
+              // poseLandmarks: rawResults.poseLandmarks?.map((l) =>
+              //   smoothLandmarks(l, poseScreenLandmarkFilters)
+              // ),
+              // poseWorldLandmarks: rawResults.poseWorldLandmarks?.map((l) =>
+              //   smoothLandmarks(l, poseWorldLandmarkFilters)
+              // ),
               leftHandLandmarks: rawResults.leftHandLandmarks?.map((l) =>
                 smoothLandmarks(l, leftHandLandmarkFilters)
               ),

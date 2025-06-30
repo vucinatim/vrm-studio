@@ -1,36 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# VRM Studio
 
-## Getting Started
+[![Deploy with Vercel](https://vercel.com/button)](https://vrm-studio.vercel.app/)
 
-First, run the development server:
+VRM Studio is a lightweight, browser-based application for VTubing. It leverages the power of Google's MediaPipe for real-time tracking and Three.js for rendering 3D avatars, allowing you to become a VTuber with just a webcam.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+![VRM Studio Screenshot](./public/screenshot.png)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## ✨ Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+*   **Real-time Tracking:** Utilizes Google MediaPipe's Holistic solution for simultaneous tracking of face, hands, and body pose.
+*   **VRM Model Support:** Load your own VRM avatars.
+*   **Green Screen:** A simple toggle provides a green screen background for easy chroma keying in OBS, Streamlabs, or other broadcasting software.
+*   **Adjustable Motion Smoothing:** Implements a Kalman filter to smooth out tracking data, with a UI slider to control the amount of smoothing.
+*   **In-Browser Controls:** An intuitive UI to control lighting, model selection, tracking parameters, and other scene settings.
+*   **High Performance:** All the heavy lifting for tracking is done in a Web Worker to ensure a smooth UI and rendering experience.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🚀 Performance
 
-## Learn More
+The application is designed to be performant. On a MacBook M1, the core tracking process in the web worker typically takes between **30-50ms** per frame. The motion is smoothed using a Kalman filter, which is adjustable in the UI to balance responsiveness and stability.
 
-To learn more about Next.js, take a look at the following resources:
+## 🏗️ Architecture
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+This project is built with a modern web stack, focusing on modularity and performance.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+*   **Framework:** [Next.js](https://nextjs.org/) (with App Router)
+*   **3D Rendering:** [Three.js](https://threejs.org/) via [@react-three/fiber](https://github.com/pmndrs/react-three-fiber) and [@react-three/drei](https://github.com/pmndrs/drei).
+*   **State Management:** [Zustand](https://github.com/pmndrs/zustand) for reactive global state.
+*   **UI Components:** [shadcn/ui](https://ui.shadcn.com/) for a clean and accessible component library.
+*   **Tracking Engine:** [Google MediaPipe](https://developers.google.com/mediapipe) Holistic tasks run inside a **Web Worker** to prevent blocking the main render loop. This is a key architectural decision that keeps the main thread free for rendering and UI updates.
+*   **Rigging Logic:** The core logic for translating MediaPipe landmarks into VRM avatar movements is contained in `src/lib`. This includes solvers for inverse kinematics (IK), head orientation, blendshapes (facial expressions), and limb rigging.
 
-## Deploy on Vercel
+## 🔧 Getting Started
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+To run this project locally:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/your-username/your-repo-name.git
+    cd your-repo-name
+    ```
+
+2.  **Install dependencies:**
+    This project uses `pnpm` as the package manager.
+    ```bash
+    pnpm install
+    ```
+
+3.  **Run the development server:**
+    ```bash
+    pnpm dev
+    ```
+
+4.  Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+##  roadmap
+
+This is just the beginning! Here are some ideas for the future:
+
+*   [ ] More robust face tracking and gestures.
+*   [ ] Custom backgrounds (images/videos).
+*   [ ] Saving and loading scene configurations.
+*   [ ] OSC support for integration with other tools.
+
+Contributions are welcome!
+
+---
+
+Built by [vucinatim](https://github.com/vucinatim). 
