@@ -15,6 +15,24 @@ VRM Studio is a lightweight, browser-based application for VTubing. It leverages
 
 ![VRM Studio Screenshot](https://raw.githubusercontent.com/vucinatim/vrm-studio/refs/heads/main/public/images/screenshot.png)
 
+## Using with OBS
+
+To integrate VRM Studio with OBS for streaming or recording, follow these steps:
+
+1.  **Configure VRM Studio:**
+    *   Turn on the **Enable Green Screen** setting.
+    *   Turn off the **Show Ground** setting.
+    *   Enable the **Hide UI on Mouse Out** setting.
+2.  **Set up the Window:** Move the VRM Studio browser window to a secondary monitor to keep it out of the way.
+3.  **Add to OBS:**
+    *   In OBS, add a new **Window Capture** source.
+    *   Select the browser window with VRM Studio.
+4.  **Refine the Capture:**
+    *   Crop the window capture to only include the avatar. You can do this by holding `Alt` (or `Option` on Mac) and dragging the edges of the source in the OBS preview.
+    *   Right-click the source in OBS and go to **Filters**.
+    *   Add a **Chroma Key** filter. The default settings should work well with the green background.
+5.  **Enjoy:** Position the final capture on your screen and enjoy your new VTuber setup!
+
 ## ✨ Features
 
 *   **Real-time Tracking:** Utilizes Google MediaPipe's Holistic solution for simultaneous tracking of face, hands, and body pose.
