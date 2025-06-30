@@ -1,7 +1,15 @@
 # <img style="margin-bottom: -5px;" src="https://raw.githubusercontent.com/vucinatim/vrm-studio/refs/heads/main/public/images/logo.png" alt="VRM Studio Logo" width="30"/> VRM Studio
 
-Check it out: </br>
-[![Deploy with Vercel](https://vercel.com/button)](https://vrm-studio.vercel.app/)
+Check it out:
+<p>
+  <a href="https://vrm-studio.vercel.app/" target="_blank" rel="noopener noreferrer">
+    <img src="https://vercel.com/button" alt="Deploy with Vercel" height="32" />
+  </a>
+  &nbsp;
+  <a href="https://www.buymeacoffee.com/vucinatim" target="_blank" rel="noopener noreferrer">
+    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="30">
+  </a>
+</p>
 
 VRM Studio is a lightweight, browser-based application for VTubing. It leverages the power of Google's MediaPipe for real-time tracking and Three.js for rendering 3D avatars, allowing you to become a VTuber with just a webcam.
 
