@@ -37,6 +37,8 @@ interface EditorState {
   selectedModelUrl: string;
   selectedModel: string;
   setSelectedModel: (model: string) => void;
+  customModel: File | null;
+  setCustomModel: (file: File) => void;
 
   // UI
   hideUiOnMouseOut: boolean;
@@ -80,7 +82,10 @@ export const initialCamera = {
   position: [0, 1.5, -1.5] as [number, number, number],
 };
 
-const modelCameraPositions = {
+const modelCameraPositions: Record<
+  string,
+  { target: [number, number, number]; position: [number, number, number] }
+> = {
   witch: {
     target: [0, 1.25, 0],
     position: [0, 1.25, -1.5],
@@ -112,10 +117,7 @@ const getModelUrl = (modelName: string) => {
 };
 
 const getModelCameraPositions = (modelName: string) => {
-  return (
-    modelCameraPositions[modelName as keyof typeof modelCameraPositions] ||
-    modelCameraPositions["boy"]
-  );
+  return modelCameraPositions[modelName] || modelCameraPositions["boy"];
 };
 
 export const useEditorStore = create<EditorState>()(
@@ -162,22 +164,28 @@ export const useEditorStore = create<EditorState>()(
           },
         })),
 
-      selectedModel: "boy",
-      selectedModelUrl: getModelUrl("boy"),
-      setSelectedModel: (name) => {
-        const newCamera = getModelCameraPositions(name);
-
+      selectedModel: "girl",
+      customModel: null,
+      selectedModelUrl: getModelUrl("girl"),
+      setSelectedModel: (model) =>
         set({
-          selectedModel: name,
-          selectedModelUrl: getModelUrl(name),
-          cameraControls: {
-            target: newCamera.target as [number, number, number],
-            position: newCamera.position as [number, number, number],
-          },
+          selectedModel: model,
+          selectedModelUrl: getModelUrl(model),
+          customModel: null,
+          morphTargetDictionary: undefined,
+          cameraControls: getModelCameraPositions(model),
+        }),
+      setCustomModel: (file) => {
+        const customModelUrl = URL.createObjectURL(file);
+        set({
+          selectedModel: customModelUrl,
+          selectedModelUrl: customModelUrl,
+          customModel: file,
+          morphTargetDictionary: undefined,
         });
       },
 
-      hideUiOnMouseOut: false,
+      hideUiOnMouseOut: true,
       toggleHideUiOnMouseOut: () =>
         set((state) => ({ hideUiOnMouseOut: !state.hideUiOnMouseOut })),
 

@@ -45,7 +45,7 @@ export function MainOverlay({
         uiVisible ? "opacity-100" : "opacity-0"
       }`}
     >
-      <div className="w-2/9 overflow-y-auto p-4">
+      <div className="w-2/9 overflow-y-auto p-4 min-w-[300px] max-w-[400px]">
         <div
           className="space-y-4 pointer-events-auto overflow-y-auto"
           onMouseEnter={handleUiEnter}
@@ -61,7 +61,7 @@ export function MainOverlay({
           )}
         </div>
       </div>
-      <div className="w-2/9 overflow-y-auto p-4">
+      <div className="w-2/9 overflow-y-auto p-4 min-w-[300px] max-w-[400px]">
         <div
           className="space-y-4 pointer-events-auto"
           onMouseEnter={handleUiEnter}

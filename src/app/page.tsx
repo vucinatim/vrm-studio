@@ -1,4 +1,4 @@
-import { VTubeStudio } from "@/components/vtube-studio";
+import { VTubeStudio } from "@/app/vtube-studio";
 
 export default function Home() {
   return (

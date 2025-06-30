@@ -21,20 +21,22 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Input } from "./ui/input";
+import { UploadIcon } from "lucide-react";
 
 function Setting({
   label,
   control,
   description,
 }: {
-  label: string;
+  label?: string;
   control: React.ReactNode;
   description?: string;
 }) {
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-col">
-        <Label className="text-xs">{label}</Label>
+        {label && <Label className="text-xs">{label}</Label>}
         {description && (
           <p className="text-sm text-muted-foreground">{description}</p>
         )}
@@ -95,10 +97,24 @@ export function SettingsPanel() {
     setGlobalSmoothingFactor,
     isGreenScreenEnabled,
     toggleGreenScreen,
+    setCustomModel,
+    customModel,
   } = useEditorStore();
   const averageWorkerTime = usePerformanceStore(
     (state) => state.averageWorkerTime
   );
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setCustomModel(file);
+    }
+  };
+
+  const handleButtonClick = () => {
+    fileInputRef.current?.click();
+  };
 
   return (
     <Card className="bg-background/30 backdrop-blur-sm">
@@ -115,6 +131,11 @@ export function SettingsPanel() {
                   <SelectValue placeholder="Select a model" />
                 </SelectTrigger>
                 <SelectContent>
+                  {customModel && (
+                    <SelectItem value={selectedModel}>
+                      {customModel.name}
+                    </SelectItem>
+                  )}
                   <SelectItem value="witch">Witch</SelectItem>
                   <SelectItem value="girl">Girl</SelectItem>
                   <SelectItem value="boy">Boy</SelectItem>
@@ -123,6 +144,27 @@ export function SettingsPanel() {
                   <SelectItem value="cat">Cat</SelectItem>
                 </SelectContent>
               </Select>
+            }
+          />
+          <Setting
+            control={
+              <>
+                <Input
+                  type="file"
+                  className="hidden"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept=".vrm"
+                />
+                <Button
+                  variant="outline"
+                  onClick={handleButtonClick}
+                  className="w-full"
+                >
+                  <UploadIcon className="w-4 h-4 mr-2" />
+                  Upload .VRM
+                </Button>
+              </>
             }
           />
           <Button onClick={resetCamera} className="w-full">

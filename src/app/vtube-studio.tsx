@@ -3,12 +3,12 @@
 import React, { useEffect, useRef } from "react";
 import { Canvas } from "@react-three/fiber";
 import { useHolisticTracking } from "@/hooks/use-holistic-tracking";
-import { Avatar } from "./Avatar";
+import { Avatar } from "@/components/Avatar";
 import { OrbitControls, Stats } from "@react-three/drei";
 import { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { initialCamera, useEditorStore } from "@/store/editor-store";
-import { MainOverlay } from "./main-overlay";
-import { SkeletonVisualizer } from "./skeleton-visualizer";
+import { MainOverlay } from "@/components/main-overlay";
+import { SkeletonVisualizer } from "@/components/skeleton-visualizer";
 
 export function VTubeStudio() {
   const {
