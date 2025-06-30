@@ -36,8 +36,13 @@ const rightHandLandmarkFilters: {
   z: KalmanFilter;
 }[] = [];
 
-const R = 0.01;
-let Q = 4;
+let R = 1;
+let Q = 0.01;
+
+const updateRQ = (smoothingFactor: number) => {
+  Q = 0.01 + smoothingFactor * 0.2;
+  R = Math.max(0.001, 1 - smoothingFactor * 0.99);
+};
 
 function initializeFilters() {
   poseWorldLandmarkFilters.length = 0;
@@ -96,6 +101,7 @@ async function initializeHolistic() {
       outputFaceBlendshapes: true,
     });
     initializeFilters();
+    updateRQ(0.8);
     self.postMessage({ type: "READY" });
   } catch (error) {
     self.postMessage({
@@ -137,7 +143,7 @@ self.onmessage = async (event) => {
       await initializeHolistic();
       break;
     case "UPDATE_SMOOTHING":
-      Q = 0.01 + payload * 0.2;
+      updateRQ(payload);
       initializeFilters();
       break;
     case "PREDICT":
@@ -157,12 +163,12 @@ self.onmessage = async (event) => {
               faceLandmarks: rawResults.faceLandmarks?.map((l) =>
                 smoothLandmarks(l, faceLandmarkFilters)
               ),
-              // poseLandmarks: rawResults.poseLandmarks?.map((l) =>
-              //   smoothLandmarks(l, poseScreenLandmarkFilters)
-              // ),
-              // poseWorldLandmarks: rawResults.poseWorldLandmarks?.map((l) =>
-              //   smoothLandmarks(l, poseWorldLandmarkFilters)
-              // ),
+              poseLandmarks: rawResults.poseLandmarks?.map((l) =>
+                smoothLandmarks(l, poseScreenLandmarkFilters)
+              ),
+              poseWorldLandmarks: rawResults.poseWorldLandmarks?.map((l) =>
+                smoothLandmarks(l, poseWorldLandmarkFilters)
+              ),
               leftHandLandmarks: rawResults.leftHandLandmarks?.map((l) =>
                 smoothLandmarks(l, leftHandLandmarkFilters)
               ),

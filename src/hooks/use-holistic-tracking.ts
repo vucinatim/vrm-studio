@@ -54,6 +54,7 @@ export function useHolisticTracking() {
 
   useEffect(() => {
     if (workerRef.current) {
+      console.log("Updating smoothing factor", globalSmoothingFactor);
       workerRef.current.postMessage({
         type: "UPDATE_SMOOTHING",
         payload: globalSmoothingFactor,

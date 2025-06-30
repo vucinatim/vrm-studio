@@ -213,7 +213,7 @@ export const useEditorStore = create<EditorState>()(
       isSmoothingEnabled: true,
       toggleSmoothing: () =>
         set((state) => ({ isSmoothingEnabled: !state.isSmoothingEnabled })),
-      globalSmoothingFactor: 0.1,
+      globalSmoothingFactor: 0.8,
       setGlobalSmoothingFactor: (factor: number) =>
         set({ globalSmoothingFactor: factor }),
 
