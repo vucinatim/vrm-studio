@@ -4,7 +4,7 @@
 
 VRM Studio is a lightweight, browser-based application for VTubing. It leverages the power of Google's MediaPipe for real-time tracking and Three.js for rendering 3D avatars, allowing you to become a VTuber with just a webcam.
 
-![VRM Studio Screenshot](./public/screenshot.png)
+![VRM Studio Screenshot](https://raw.githubusercontent.com/vucinatim/vrm-studio/refs/heads/main/public/images/screenshot.png)
 
 ## ✨ Features
 
